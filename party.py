@@ -11,18 +11,25 @@ def main():
         mysql_cursor=connection.cursor()
 
 	offset=0
-
-	while True:
+	a=10
+	while (a==10):
 	
-		mysql_cursor.execute("select p.id,p.fullname,up.unresolved_party_type_name,m.id from party as p inner join party_unresolved_party_type_map as m on p.id=m.party_id inner join unresolved_party_type as up on m.unresolved_party_type_id=up.id order by p.id limit 1000")
+		mysql_cursor.execute("select p.id,p.fullname,up.unresolved_party_type_name,m.id from party as p inner join party_unresolved_party_type_map as m on p.id=m.party_id inner join unresolved_party_type as up on m.unresolved_party_type_id=up.id order by p.id limit 1000 offset %s",(offset))
        		result_set = mysql_cursor.fetchall()
-		
-		f = open("file_%s.csv"%offset,"wb")
-		fwriter = csv.writer(f,quoting=csv.QUOTE_ALL)
-
-		for i in result_set:
-			fwriter.writerow(i)
-		f.close()
+		if not result_set:
+			break	
+		if len(result_set)<1000:
+			f=open("final_file_%s.csv"%offset,"wb")
+			fwriter=csv.writer(f,quoting=csv.QUOTE_ALL)
+			for i in result_set:
+				fwriter.writerow(i)
+		else:
+			f = open("file_%s.csv"%offset,"wb")
+			fwriter = csv.writer(f,quoting=csv.QUOTE_ALL)
+			fwriter.writerow(['ID','Full name','party type','map id'])
+			for i in result_set:
+				fwriter.writerow(i)
+			f.close()
 		offset += 1000
 #	if offset!=len(result_set):
 #				break
